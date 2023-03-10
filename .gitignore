@@ -131,3 +131,6 @@ dmypy.json
 # gen files
 *.spi
 ram/
+
+# tcl script
+*.tcl

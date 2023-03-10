@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args" : ["ram.spi", "-k", "-c", "xxx ${filename}"]
+            "args" : ["ram.spi", "-k", "-c", "xxx #filename", "-t", "exportFile.tcl"]
         }
     ]
 }

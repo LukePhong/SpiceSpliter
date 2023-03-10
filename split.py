@@ -3,17 +3,26 @@ import os
 import re
 import shutil
 import subprocess
-# import tempfile
+
+def tcl_edit(file_name, unchanged_name, replace_string):
+    with open(file_name, 'r') as file:
+        file_content = file.read()
+    
+    replaced_content = file_content.replace(unchanged_name, replace_string)
+    
+    with open(file_name, 'w') as file:
+        file.write(replaced_content)
 
 # Create argument parser
 parser = argparse.ArgumentParser(description="Process SPI files")
 parser.add_argument("filename", help="Input file name")
 parser.add_argument("-k", "--keep", action="store_true", help="Keep temporary files")
-parser.add_argument("-c", "--command", help="Command to execute after processing. Please use ${filename} in your command if you want splited files to be used in it.")
+parser.add_argument("-c", "--command", help="Command to execute after processing. Please use #filename in your command if you want splited files to be used in it.")
+parser.add_argument("-t", "--tcl", help="If you want to use Tcl script, please input name.")
 args = parser.parse_args()
 
 # Define pattern for .subckt and .end
-pattern = re.compile(r'(\.subckt|\.SUBCKT)\s+(\S+)\s+(.*?)(\.end|\.END)', re.DOTALL)
+pattern = re.compile(r'(\.subckt|\.SUBCKT)\s+(\S+)\s+(.*?)(\.ends|\.ENDS)', re.DOTALL)
 
 # Read input file
 with open(args.filename) as f:
@@ -54,8 +63,13 @@ for section, text in section_dict.items():
         f.write(text_string)
     # Execute command if specified
     if args.command:
-        command = args.command.replace("${filename}", temp_file)
+        command = args.command.replace("#filename", temp_file)
+        if args.tcl:
+            tcl_edit(args.tcl, "subckt_name", section)
+            command = command + " -script " + args.tcl
+        print("command to run: " + command)
         subprocess.run(command, shell=True)
+        tcl_edit(args.tcl, section, "subckt_name")
 
 # Remove temporary directory
 if not args.keep:
